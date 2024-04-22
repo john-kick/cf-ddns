@@ -1,11 +1,19 @@
 import Cloudflare, { ClientOptions } from "cloudflare";
-import { publicIpv4 } from "public-ip";
+import dotenv from "dotenv";
 
-const zone_id = "bc235f4b102d9a29e9c06cd91bb484b6";
+dotenv.config();
+
+if (!(process.env.API_ZONE_ID && process.env.API_KEY && process.env.API_MAIL)) {
+  throw new Error(
+    "'API_ZONE_ID', 'API_KEY' and 'API_EMAIL' must be set in .env"
+  );
+}
+
+const zone_id = process.env.API_ZONE_ID;
 
 const options: ClientOptions = {
-  apiKey: "e756cf700519e82efead95f929b050c400d59",
-  apiEmail: "Andre010400@web.de",
+  apiKey: process.env.API_KEY,
+  apiEmail: process.env.API_MAIL,
 };
 
 async function getPublicIPAddress(): Promise<string> {
@@ -41,8 +49,8 @@ async function main() {
 
         const params: Cloudflare.DNS.Records.RecordUpdateParams.DNSRecordsARecord =
           {
-            zone_id: record.zone_id,
-            content: address!,
+            zone_id,
+            content: address,
             name: record.name,
             type: "A",
           };
