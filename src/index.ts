@@ -13,7 +13,7 @@ const zone_id = process.env.API_ZONE_ID;
 
 const options: ClientOptions = {
   apiKey: process.env.API_KEY,
-  apiEmail: process.env.API_MAIL,
+  apiEmail: process.env.API_MAIL
 };
 
 async function getPublicIPAddress(): Promise<string> {
@@ -52,7 +52,7 @@ async function main() {
             zone_id,
             content: address,
             name: record.name,
-            type: "A",
+            type: "A"
           };
 
         cf.dns.records.update(record.id, params);
