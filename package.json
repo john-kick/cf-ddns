@@ -4,19 +4,16 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node ./src/index.ts"
+    "start": "node ./dist/index.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "cloudflare": "^3.0.0",
-    "dotenv": "^16.4.5",
-    "public-ip": "^6.0.2",
-    "ts-node": "^10.9.2"
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
-    "typescript": "^5.4.5"
+    "@types/node": "^22.7.7"
   }
 }
