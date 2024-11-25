@@ -37,8 +37,8 @@ const getExistingRecords = async (): Promise<Record[]> => {
   const response = await fetch(API_BASE_URL + "dns_records", {
     headers: {
       "X-Auth-Key": API_KEY,
-      "X-Auth-Email": API_EMAIL
-    }
+      "X-Auth-Email": API_EMAIL,
+    },
   });
   const data = await response.json();
 
@@ -53,7 +53,7 @@ const getIPv4Address = async (): Promise<string> => {
 const getIPv6Address = async (): Promise<string> => {
   const response = await fetch("https://api64.ipify.org?format=json");
   return (await response.json()).ip;
-}
+};
 
 const getNecessaryRecords = async (): Promise<Partial<Record>[]> => {
   const ipv4 = await getIPv4Address();
@@ -66,7 +66,7 @@ const getNecessaryRecords = async (): Promise<Partial<Record>[]> => {
     content: ipv4,
     type: "A",
     name: "server-kicker.de",
-    proxied: false
+    proxied: false,
   };
 
   // A www.server-kicker.de
@@ -74,7 +74,7 @@ const getNecessaryRecords = async (): Promise<Partial<Record>[]> => {
     content: ipv4,
     type: "A",
     name: "www.server-kicker.de",
-    proxied: false
+    proxied: false,
   };
 
   // A auth.server-kicker.de
@@ -82,34 +82,59 @@ const getNecessaryRecords = async (): Promise<Partial<Record>[]> => {
     content: ipv4,
     type: "A",
     name: "auth.server-kicker.de",
-    proxied: false
-  }
+    proxied: false,
+  };
 
   // A vaultwarden.server-kicker.de
   const aVaultwarden: Partial<Record> = {
     content: ipv4,
     type: "A",
     name: "vaultwarden.server-kicker.de",
-    proxied: false
-  }
+    proxied: false,
+  };
 
   // AAAA server-kicker.de
   const aaaaBase: Partial<Record> = {
     content: ipv6,
     type: "AAAA",
     name: "server-kicker.de",
-    proxied: true
-  }
+    proxied: true,
+  };
 
   // AAAA www.server-kicker.de
   const aaaaWww: Partial<Record> = {
     content: ipv6,
     type: "AAAA",
     name: "server-kicker.de",
-    proxied: true
-  }
+    proxied: true,
+  };
 
-  return [aBase, aWww, aAuth, aVaultwarden, aaaaBase, aaaaWww];
+  // AAAA server-kicker.de
+  const aaaaAuth: Partial<Record> = {
+    content: ipv6,
+    type: "AAAA",
+    name: "auth.server-kicker.de",
+    proxied: true,
+  };
+
+  // AAAA www.server-kicker.de
+  const aaaaVaultwarden: Partial<Record> = {
+    content: ipv6,
+    type: "AAAA",
+    name: "vaultwarden.server-kicker.de",
+    proxied: true,
+  };
+
+  return [
+    aBase,
+    aWww,
+    aAuth,
+    aVaultwarden,
+    aaaaBase,
+    aaaaWww,
+    aaaaAuth,
+    aaaaVaultwarden,
+  ];
 };
 
 const updateRecords = async (): Promise<void> => {
@@ -129,13 +154,13 @@ const updateRecords = async (): Promise<void> => {
       method: recordId ? "PUT" : "POST",
       headers: {
         "X-Auth-Key": API_KEY,
-        "X-Auth-Email": API_EMAIL
+        "X-Auth-Email": API_EMAIL,
       },
-      body: JSON.stringify(record)
+      body: JSON.stringify(record),
     })
       .then((response) => {
         if (!response.ok) {
-	  console.error("Request failed with status " + response.status);
+          console.error("Request failed with status " + response.status);
         }
       })
       .catch((err) => {
