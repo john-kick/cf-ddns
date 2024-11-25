@@ -11,7 +11,7 @@ if (!API_KEY || !API_EMAIL || !API_ZONE_ID) {
   throw new Error("Necessary configuration not set");
 }
 
-interface ARecord {
+interface Record {
   id: string;
   zone_id: string;
   zone_name: string;
@@ -33,7 +33,7 @@ interface ARecord {
   modified_on: string;
 }
 
-const getExistingRecords = async (): Promise<ARecord[]> => {
+const getExistingRecords = async (): Promise<Record[]> => {
   const response = await fetch(API_BASE_URL + "dns_records", {
     headers: {
       "X-Auth-Key": API_KEY,
@@ -42,7 +42,7 @@ const getExistingRecords = async (): Promise<ARecord[]> => {
   });
   const data = await response.json();
 
-  return data.result as ARecord[];
+  return data.result as Record[];
 };
 
 const getIPv4Address = async (): Promise<string> => {
@@ -50,23 +50,66 @@ const getIPv4Address = async (): Promise<string> => {
   return (await response.json()).ip;
 };
 
-const getNecessaryRecords = async (): Promise<Partial<ARecord>[]> => {
-  const ip = await getIPv4Address();
+const getIPv6Address = async (): Promise<string> => {
+  const response = await fetch("https://api64.ipify.org?format=json");
+  return (await response.json()).ip;
+}
 
-  // server-kicker.de
-  const base: Partial<ARecord> = {
-    content: ip,
+const getNecessaryRecords = async (): Promise<Partial<Record>[]> => {
+  const ipv4 = await getIPv4Address();
+  const ipv6 = await getIPv6Address();
+  console.log("New ipv4:", ipv4);
+  console.log("New ipv6:", ipv6);
+
+  // A server-kicker.de
+  const aBase: Partial<Record> = {
+    content: ipv4,
     type: "A",
-    name: "server-kicker.de"
+    name: "server-kicker.de",
+    proxied: false
   };
 
-  const www: Partial<ARecord> = {
-    content: ip,
+  // A www.server-kicker.de
+  const aWww: Partial<Record> = {
+    content: ipv4,
     type: "A",
-    name: "www.server-kicker.de"
+    name: "www.server-kicker.de",
+    proxied: false
   };
 
-  return [base, www];
+  // A auth.server-kicker.de
+  const aAuth: Partial<Record> = {
+    content: ipv4,
+    type: "A",
+    name: "auth.server-kicker.de",
+    proxied: false
+  }
+
+  // A vaultwarden.server-kicker.de
+  const aVaultwarden: Partial<Record> = {
+    content: ipv4,
+    type: "A",
+    name: "vaultwarden.server-kicker.de",
+    proxied: false
+  }
+
+  // AAAA server-kicker.de
+  const aaaaBase: Partial<Record> = {
+    content: ipv6,
+    type: "AAAA",
+    name: "server-kicker.de",
+    proxied: true
+  }
+
+  // AAAA www.server-kicker.de
+  const aaaaWww: Partial<Record> = {
+    content: ipv6,
+    type: "AAAA",
+    name: "server-kicker.de",
+    proxied: true
+  }
+
+  return [aBase, aWww, aAuth, aVaultwarden, aaaaBase, aaaaWww];
 };
 
 const updateRecords = async (): Promise<void> => {
@@ -82,16 +125,22 @@ const updateRecords = async (): Promise<void> => {
       }
     });
 
-    fetch(API_BASE_URL + "dns_records", {
+    fetch(API_BASE_URL + "dns_records/" + (recordId ?? ""), {
       method: recordId ? "PUT" : "POST",
       headers: {
         "X-Auth-Key": API_KEY,
         "X-Auth-Email": API_EMAIL
       },
       body: JSON.stringify(record)
-    }).catch((err) => {
-      console.error(err);
-    });
+    })
+      .then((response) => {
+        if (!response.ok) {
+	  console.error("Request failed with status " + response.status);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   });
 };
 
