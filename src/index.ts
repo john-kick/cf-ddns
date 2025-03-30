@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
@@ -61,80 +63,39 @@ const getNecessaryRecords = async (): Promise<Partial<Record>[]> => {
   console.log("New ipv4:", ipv4);
   console.log("New ipv6:", ipv6);
 
-  // A server-kicker.de
-  const aBase: Partial<Record> = {
+  // Resolve the path to the config.json file
+  const configPath = path.resolve(__dirname, "../config.json");
+
+  let config: { aRecords: any[]; aaaaRecords: any[] } = {
+    aRecords: [],
+    aaaaRecords: [],
+  };
+
+  try {
+    // Read and parse the JSON file
+    const configContent = fs.readFileSync(configPath, "utf8");
+    config = JSON.parse(configContent);
+  } catch (error) {
+    console.error("Error reading or parsing config.json:", error);
+  }
+
+  // Map A records
+  const aRecords = config.aRecords.map((record) => ({
     content: ipv4,
     type: "A",
-    name: "server-kicker.de",
-    proxied: false,
-  };
+    name: record.name,
+    proxied: record.proxied,
+  }));
 
-  // A www.server-kicker.de
-  const aWww: Partial<Record> = {
-    content: ipv4,
-    type: "A",
-    name: "www.server-kicker.de",
-    proxied: false,
-  };
-
-  // A auth.server-kicker.de
-  const aAuth: Partial<Record> = {
-    content: ipv4,
-    type: "A",
-    name: "auth.server-kicker.de",
-    proxied: false,
-  };
-
-  // A vaultwarden.server-kicker.de
-  const aVaultwarden: Partial<Record> = {
-    content: ipv4,
-    type: "A",
-    name: "vaultwarden.server-kicker.de",
-    proxied: false,
-  };
-
-  // AAAA server-kicker.de
-  const aaaaBase: Partial<Record> = {
+  // Map AAAA records
+  const aaaaRecords = config.aaaaRecords.map((record) => ({
     content: ipv6,
     type: "AAAA",
-    name: "server-kicker.de",
-    proxied: true,
-  };
+    name: record.name,
+    proxied: record.proxied,
+  }));
 
-  // AAAA www.server-kicker.de
-  const aaaaWww: Partial<Record> = {
-    content: ipv6,
-    type: "AAAA",
-    name: "server-kicker.de",
-    proxied: true,
-  };
-
-  // AAAA server-kicker.de
-  const aaaaAuth: Partial<Record> = {
-    content: ipv6,
-    type: "AAAA",
-    name: "auth.server-kicker.de",
-    proxied: true,
-  };
-
-  // AAAA www.server-kicker.de
-  const aaaaVaultwarden: Partial<Record> = {
-    content: ipv6,
-    type: "AAAA",
-    name: "vaultwarden.server-kicker.de",
-    proxied: true,
-  };
-
-  return [
-    aBase,
-    aWww,
-    aAuth,
-    aVaultwarden,
-    aaaaBase,
-    aaaaWww,
-    aaaaAuth,
-    aaaaVaultwarden,
-  ];
+  return [...aRecords, ...aaaaRecords] as Partial<Record>[];
 };
 
 const updateRecords = async (): Promise<void> => {
